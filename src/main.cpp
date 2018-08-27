@@ -22,7 +22,8 @@ int main ( int argc, char** argv )
     // Initialize the conference organizer.
     SessionOrganizer *organizer  = new SessionOrganizer( inputfilename );
     
-    double score2 = organizer->organisePapersBaseline(start);
+    // double score2 = organizer->organisePapersBaseline(start);
+    double score2 = organizer->organisePapersAlternative(start);
 
     // double score2 = organizer->organisePapersSystematicSearch(start);
     // Score the organization against the gold standard.

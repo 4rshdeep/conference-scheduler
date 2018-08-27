@@ -69,6 +69,7 @@ public:
 
     double organisePapersBaseline( chrono::high_resolution_clock::time_point);
     double organisePapersSystematicSearch( chrono::high_resolution_clock::time_point);
+    double organisePapersAlternative ( chrono::high_resolution_clock::time_point start );
 
     void swapPapersBaseline(Conference *,int s1, int s2);
     

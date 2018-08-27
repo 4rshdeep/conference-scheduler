@@ -24,32 +24,44 @@ void print_vec( vector<int> vec ) {
     cout << "---" << endl;
 }
 
+// void SessionOrganizer::randomRestart( ) {
+//     auto rng = std::default_random_engine {};
+//     std::shuffle(std::begin(papers), std::end(papers), rng);
+    
+//     cout << scoreOrganization(conference) << "\n\n";
+//     int paperCounter = 0;
+//     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+//     {
+//         for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+//         {
+//             for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
+//             {
+//                 conference->setPaper ( j, i, k, papers[paperCounter] );
+//                 paperCounter++;
+//             }
+//         }
+//     }
+    
+//     // Should I do this?
+//     if (scoreOrganization(conference) < 0.75*max_score)
+//     {
+//         randomRestart();
+//     }
+
+// }
 void SessionOrganizer::randomRestart( ) {
-    auto rng = std::default_random_engine {};
-    std::shuffle(std::begin(papers), std::end(papers), rng);
-    
-    cout << scoreOrganization(conference) << "\n\n";
-    int paperCounter = 0;
-    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    int slot1,slot2;
+    for ( int i = 0; i < totalPapers/50; i++ )
     {
-        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
-        {
-            for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
-            {
-                conference->setPaper ( j, i, k, papers[paperCounter] );
-                paperCounter++;
-            }
-        }
-    }
-    
-    // Should I do this?
-    if (scoreOrganization(conference) < 0.75*max_score)
-    {
-        randomRestart();
+
+        slot1 = rand() % totalPapers;
+        slot2 = rand() % totalPapers;
+
+        swapPapersBaseline (conference, slot1, slot2 );
+
     }
 
 }
-
 SessionOrganizer::SessionOrganizer ( string filename )
 {
     readInInputFile ( filename );
@@ -171,6 +183,108 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
                 if (p > exp(delta*((10+1)))) // change 10 to temp when needed
                 {
                     swapPapersBaseline ( conference, slot1, slot2 );
+                    iter++;
+                }
+                else{
+                    score = score2;
+                    cout << "Taking road less taken " << endl;
+                    iter = 0;
+                }
+
+            }
+        }
+        else{
+            count_temp++;
+        }
+    }
+    
+    cout << "Score :" << max_score << " c=" <<count_temp <<endl; 
+    return max_score;
+}
+
+double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clock::time_point start ) {
+
+    time_t t2;
+    srand(time(0));
+    int n = totalPapers;
+    
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> rndm(0,n-1);
+
+    std::uniform_real_distribution<double> prob(0.0,1.0);
+
+    int slot1 = rand() % n;
+    int slot2 = rand() % n;
+    int slot3 = rand() % n;
+    
+        
+    double score, score2, delta, p;
+    score  = scoreOrganization ( conference);
+    
+    int iter = 0; // keep track of local maxima
+
+    string rep_state;
+    int count_temp = 0;
+    int i = 0;
+    while(true)
+    {   
+        i++;
+        if (iter > 200)
+        {
+            cout << "\n\nRandom Restart\n\n" <<endl ;
+            score = scoreOrganization(conference);
+            if (score > max_score)
+            {
+                max_score = score;
+            }
+            randomRestart();
+            score = scoreOrganization(conference);
+            iter = 0;
+        }
+        
+        if (score > max_score)
+        {
+            max_score = score;
+        }
+        time(&t2);
+        auto curr_time = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
+        // cout << dif << endl;
+        if ( 1000*processingTimeInSeconds - duration.count() < 500)
+        {
+            break;
+        }
+        slot1 = rand() % n;
+        slot2 = rand() % n;
+        slot3 = rand() % n;
+        
+
+        swapPapersBaseline (conference, slot1, slot2 );
+        swapPapersBaseline (conference, slot2, slot3 );
+        
+        rep_state = conf2str(conference);      
+        cout << "Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
+
+        if(visited.find(rep_state)==visited.end()){
+            visited.insert(make_pair(rep_state, true));
+            score2 = scoreOrganization ( conference);
+            // cout << "Iteration : " << i << " Score :" << score << endl; 
+            delta = score2 - score;
+            if(delta > 0){
+                score = score2;
+                score2 = -1;
+                iter = 0;
+            }
+            else {
+                p = prob(generator);
+                // p = ((double) rand() / (RAND_MAX));
+                // undo swap if probability is greater
+                if (p > exp(delta*((10+1)))) // change 10 to temp when needed
+                {
+                    swapPapersBaseline (conference, slot2, slot3 );
+                    swapPapersBaseline (conference, slot1, slot2 );
+                    if (i%100==0)
+                    cout<< "Prob of going to lesser state= "<<exp(delta*((1.0/10.0)))<<" and delta is "<<delta<<endl;
                     iter++;
                 }
                 else{
