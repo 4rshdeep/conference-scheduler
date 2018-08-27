@@ -20,6 +20,7 @@
 using namespace std;
 
 
+
 /**
  * SessionOrganizer reads in a similarity matrix of papers, and organizes them
  * into sessions and tracks.
@@ -62,7 +63,7 @@ public:
      */
     void organizePapers();
 
-    double organisePapersBaseline();
+    double organisePapersBaseline(time_t t);
 
     void swapPapersBaseline(int s1, int s2);
     
