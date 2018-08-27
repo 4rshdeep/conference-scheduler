@@ -105,8 +105,9 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
         }
         else {
             p = prob(generator);
+            // p = ((double) rand() / (RAND_MAX));
             // undo swap if probability is greater
-            if (p > exp(delta*(i+1)))
+            if (p > exp(delta*((i+1))))
             {
                 swapPapersBaseline ( slot1, slot2 );
             }
