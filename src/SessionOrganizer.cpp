@@ -43,6 +43,7 @@ SessionOrganizer::SessionOrganizer ( string filename )
 // Change this
 void SessionOrganizer::organizePapers ( )
 {
+    
     int paperCounter = 0;
     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
     {
@@ -56,6 +57,38 @@ void SessionOrganizer::organizePapers ( )
         }
     }
 }
+
+double SessionOrganizer::organisePapersBaseline (  ) {
+
+    srand(time(0));
+    int n = totalPapers;
+    
+    int p = 25;
+
+    int slot1 = rand() % n;
+    int slot2 = rand() % n;
+    double score,score2;
+    score  = scoreOrganization ( );
+    
+    cout << "score :" << score << endl;
+    cout << "score2 :" << score2 << endl;
+    
+    for (int i = 0; i < 100000; ++i)
+    {
+        slot1 = rand() % n;
+        slot2 = rand() % n;
+        swapPapersBaseline ( slot1, slot2 );
+        score2 = scoreOrganization ( );
+        if(score2 > score){
+            score = score2;
+            score2 = -1;
+            cout << "Iteration : " << i << " Score :" << score << endl; 
+        }
+    }
+    cout << "Score :" << score << endl; 
+    return score;
+}
+
 
 
 void SessionOrganizer::swapPapersBaseline ( int slot1, int slot2 )
@@ -76,10 +109,10 @@ void SessionOrganizer::swapPapersBaseline ( int slot1, int slot2 )
 
     while(slot1 == slot2)
     {
-        if (slot1 == slot2)
-        {
-            cout << "Random numbers are same" << endl;
-        }
+        // if (slot1 == slot2)
+        // {
+            // cout << "Random numbers are same" << endl;
+        // }
         slot2 = rand() % n;
     }   
 

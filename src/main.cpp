@@ -33,30 +33,9 @@ int main ( int argc, char** argv )
     organizer->printSessionOrganiser ( argv[2]);
 
     // Score the organization against the gold standard.
-    double score = organizer->scoreOrganization ( );
-    cout<< "score:"<<score<<endl;
-    srand(time(0));
-
-    int n = organizer->totalPapers;
-
-    int slot1 = rand() % n;
-    int slot2 = rand() % n;
-    organizer->swapPapersBaseline ( slot1, slot2 );
-    int score2 = organizer->scoreOrganization ( );
-
-
-    int iter = 0;
-    while(score2 < score){
-        cout << "while score" << score2 << endl;
-        if (score2 < score)
-        {
-            slot1 = rand() % n;
-            slot2 = rand() % n;
-            organizer->swapPapersBaseline ( slot1, slot2 );
-            score2 = organizer->scoreOrganization ( );
-        }
-        iter++;
-    }
+    // cout<< "score:"<<score<<endl;
+    
+    double score2 = organizer->organisePapersBaseline();
     // Score the organization against the gold standard.
     cout<< "After score:"<<score2<<endl;
     

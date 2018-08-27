@@ -37,12 +37,12 @@ private:
 
     Conference *conference;
 
-    double processingTimeInMinutes ;
     double tradeoffCoefficient ; // the tradeoff coefficient
 
 
 public:
     int totalPapers;
+    double processingTimeInMinutes ;
     SessionOrganizer();
     SessionOrganizer(string filename);
     
@@ -62,8 +62,10 @@ public:
      */
     void organizePapers();
 
+    double organisePapersBaseline();
 
     void swapPapersBaseline(int s1, int s2);
+    
     
     
     /**
