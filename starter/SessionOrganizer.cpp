@@ -22,7 +22,24 @@ SessionOrganizer::SessionOrganizer ( string filename )
     conference = new Conference ( parallelTracks, sessionsInTrack, papersInSession );
 }
 
+// Change this
 void SessionOrganizer::organizePapers ( )
+{
+    int paperCounter = 0;
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+        {
+            for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
+            {
+                conference->setPaper ( j, i, k, paperCounter );
+                paperCounter++;
+            }
+        }
+    }
+}
+
+void SessionOrganizer::organizePapersBaseline ( )
 {
     int paperCounter = 0;
     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
