@@ -1,8 +1,3 @@
-/* 
- * File:   Session.h
- * Author: Kapil Thakkar
- *
- */
 
 #ifndef SESSION_H
 #define	SESSION_H
@@ -14,7 +9,6 @@ using namespace std;
 /**
  * Session holds an array of papers.
  * 
- * @author Kapil Thakkar
  *
  */
 

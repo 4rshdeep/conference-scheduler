@@ -1,11 +1,4 @@
-/* 
- * File:   Track.cpp
- * Author: Kapil Thakkar
- * 
- */
-
 #include <stdlib.h>
-
 #include "Track.h"
 
 Track::Track ( )

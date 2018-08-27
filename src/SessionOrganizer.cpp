@@ -1,11 +1,8 @@
-/* 
- * File:   SessionOrganizer.cpp
- * Author: Kapil Thakkar
- * 
- */
-
 #include "SessionOrganizer.h"
 #include "Util.h"
+#include <random>
+#include <cmath>
+#include <algorithm>
 #include <random>
 
 SessionOrganizer::SessionOrganizer ( )
@@ -16,6 +13,41 @@ SessionOrganizer::SessionOrganizer ( )
     processingTimeInMinutes = 0;
     tradeoffCoefficient = 1.0;
     totalPapers = 0;
+    max_score = 0;
+
+}
+
+void print_vec( vector<int> vec ) {
+    for(int i=0; i < vec.size(); i++) {
+        cout << vec[i] << ", ";
+    }
+    cout << "---" << endl;
+}
+
+void SessionOrganizer::randomRestart( ) {
+    auto rng = std::default_random_engine {};
+    std::shuffle(std::begin(papers), std::end(papers), rng);
+    
+    cout << scoreOrganization() << "\n\n";
+    int paperCounter = 0;
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+        {
+            for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
+            {
+                conference->setPaper ( j, i, k, papers[paperCounter] );
+                paperCounter++;
+            }
+        }
+    }
+    
+    // Should I do this?
+    if (scoreOrganization() < 0.75*max_score)
+    {
+        randomRestart();
+    }
+
 }
 
 SessionOrganizer::SessionOrganizer ( string filename )
@@ -24,8 +56,6 @@ SessionOrganizer::SessionOrganizer ( string filename )
     conference = new Conference ( parallelTracks, sessionsInTrack, papersInSession );
     
     processingTimeInMinutes = processingTimeInMinutes*60;
-
-    cout << processingTimeInMinutes;
 
     totalPapers = parallelTracks*papersInSession*sessionsInTrack;
 
@@ -37,18 +67,20 @@ SessionOrganizer::SessionOrganizer ( string filename )
         {
             for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
             {
+                papers.push_back(paperCounter);
                 conference->setPaper ( j, i, k, paperCounter );
                 paperCounter++;
             }
         }
     }
+
     // Initialisation done //
+
 }
 
 // Change this
 void SessionOrganizer::organizePapers ( )
 {
-
     int paperCounter = 0;
     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
     {
@@ -62,6 +94,7 @@ void SessionOrganizer::organizePapers ( )
         }
     }
 }
+
 
 double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
 
@@ -80,40 +113,62 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
     double score, score2, delta, p;
     score  = scoreOrganization ( );
     
-    cout << "score :" << score << endl;
-    cout << "score2 :" << score2 << endl;
-    
+    int iter = 0; // keep track of local maxima
+
     for (int i = 0; i < 100000; ++i)
     {   
+        if (iter > 2000)
+        {
+            cout << "\n\nRandom Restart\n\n" <<endl ;
+            score = scoreOrganization();
+            if (score > max_score)
+            {
+                max_score = score;
+            }
+            randomRestart();
+            score = scoreOrganization();
+            iter = 0;
+        }
+        
+        if (score > max_score)
+        {
+            max_score = score;
+        }
         time(&t2);
         double dif = difftime (t2, t1);
-        cout << dif << endl;
         if ( processingTimeInMinutes - dif < 0.3)
         {
             break;
         }
-        // if dif 
         slot1 = rand() % n;
         slot2 = rand() % n;
         swapPapersBaseline ( slot1, slot2 );
         score2 = scoreOrganization ( );
-        cout << "Iteration : " << i << " Score :" << score << endl; 
+        cout << "Time : " << dif << " | Iteration : " << i << " | Score :" << score << endl; 
         delta = score2 - score;
         if(delta > 0){
             score = score2;
             score2 = -1;
+            iter = 0;
         }
         else {
             p = prob(generator);
             // p = ((double) rand() / (RAND_MAX));
-            // undo swap if probability is greater
-            if (p > exp(delta*((i+1))))
+            // if (p > exp(delta*(pow((i+1), 0.5))))
+            if (p > exp(delta*(i+1)))
             {
+                // undo swap if probability is greater
                 swapPapersBaseline ( slot1, slot2 );
+                iter++;
+            }
+            else{
+                score = scoreOrganization();
+                cout << "Taking road less taken " << endl;
+                iter = 0;
             }
         }
     }
-    cout << "Score :" << score << endl; 
+    cout << "Score :" << max_score << endl; 
     return score;
 }
 
@@ -159,7 +214,6 @@ void SessionOrganizer::readInInputFile ( string filename )
     {
         while ( getline ( myfile, line ) )
         {
-            //cout<<"Line read:"<<line<<endl;
             lines.push_back ( line );
         }
         myfile.close ( );

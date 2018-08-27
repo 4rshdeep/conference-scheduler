@@ -1,10 +1,3 @@
-/* 
- * File:   Conference.h
- * Author: Kapil Thakkar
- *
- * Created on 9 August, 2015, 10:07 AM
- */
-
 #ifndef CONFERENCE_H
 #define	CONFERENCE_H
 

@@ -1,9 +1,3 @@
-/* 
- * File:   SessionOrganizer.h
- * Author: Kapil Thakkar
- *
- */
-
 #ifndef SESSIONORGANIZER_H
 #define	SESSIONORGANIZER_H
 
@@ -25,7 +19,6 @@ using namespace std;
  * SessionOrganizer reads in a similarity matrix of papers, and organizes them
  * into sessions and tracks.
  * 
- * @author Kapil Thakkar
  *
  */
 class SessionOrganizer {
@@ -43,7 +36,10 @@ private:
 
 public:
     int totalPapers;
-    double processingTimeInMinutes ;
+    double processingTimeInMinutes;
+    vector<int> papers;
+    double max_score;
+
     SessionOrganizer();
     SessionOrganizer(string filename);
     
@@ -56,7 +52,7 @@ public:
      */
     void readInInputFile(string filename);
     
-    
+    void randomRestart();
     
     /**
      * Organize the papers according to some algorithm.

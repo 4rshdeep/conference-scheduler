@@ -1,10 +1,3 @@
-/* 
- * File:   Track.h
- * Author: Kapil Thakkar
- *
- * Created on 9 August, 2015, 9:53 AM
- */
-
 #ifndef TRACK_H
 #define	TRACK_H
 
@@ -14,7 +7,6 @@
 /**
  * Track maintains an array of sessions.
  * 
- * @author Kapil Thakkar
  *
  */
 

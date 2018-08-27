@@ -1,18 +1,10 @@
-/* 
- * File:   main.cpp
- * Author: Kapil Thakkar
- *
- */
-
 #include <cstdlib>
+#include <cmath>
 
 #include "SessionOrganizer.h"
 
 using namespace std;
 
-/*
- * 
- */
 int main ( int argc, char** argv )
 {
     time_t start;
@@ -30,18 +22,12 @@ int main ( int argc, char** argv )
     
     // Initialize the conference organizer.
     SessionOrganizer *organizer  = new SessionOrganizer( inputfilename );
-
-    // Organize the papers into tracks based on similarity.
-
-    organizer->printSessionOrganiser ( argv[2]);
-
-    // Score the organization against the gold standard.
-    // cout<< "score:"<<score<<endl;
     
     double score2 = organizer->organisePapersBaseline(start);
-    // Score the organization against the gold standard.
+
     cout<< "After score:"<<score2<<endl;
     
+    organizer->printSessionOrganiser ( argv[2]);
     return 0;
 }
 
