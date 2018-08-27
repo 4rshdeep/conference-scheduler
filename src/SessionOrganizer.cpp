@@ -6,6 +6,7 @@
 
 #include "SessionOrganizer.h"
 #include "Util.h"
+#include <random>
 
 SessionOrganizer::SessionOrganizer ( )
 {
@@ -21,6 +22,10 @@ SessionOrganizer::SessionOrganizer ( string filename )
 {
     readInInputFile ( filename );
     conference = new Conference ( parallelTracks, sessionsInTrack, papersInSession );
+    
+    processingTimeInMinutes = processingTimeInMinutes*60;
+
+    cout << processingTimeInMinutes;
 
     totalPapers = parallelTracks*papersInSession*sessionsInTrack;
 
@@ -43,7 +48,7 @@ SessionOrganizer::SessionOrganizer ( string filename )
 // Change this
 void SessionOrganizer::organizePapers ( )
 {
-    
+
     int paperCounter = 0;
     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
     {
@@ -58,31 +63,54 @@ void SessionOrganizer::organizePapers ( )
     }
 }
 
-double SessionOrganizer::organisePapersBaseline (  ) {
+double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
 
+    time_t t2;
     srand(time(0));
     int n = totalPapers;
     
-    int p = 25;
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> rndm(0,n-1);
 
-    int slot1 = rand() % n;
+    std::uniform_real_distribution<double> prob(0.0,1.0);
+
+    int slot1 = slot1 = rand() % n;
     int slot2 = rand() % n;
-    double score,score2;
+        
+    double score, score2, delta, p;
     score  = scoreOrganization ( );
     
     cout << "score :" << score << endl;
     cout << "score2 :" << score2 << endl;
     
     for (int i = 0; i < 100000; ++i)
-    {
+    {   
+        time(&t2);
+        double dif = difftime (t2, t1);
+        cout << dif << endl;
+        if ( processingTimeInMinutes - dif < 0.3)
+        {
+            break;
+        }
+        // if dif 
         slot1 = rand() % n;
         slot2 = rand() % n;
         swapPapersBaseline ( slot1, slot2 );
         score2 = scoreOrganization ( );
-        if(score2 > score){
+        cout << "Iteration : " << i << " Score :" << score << endl; 
+        delta = score2 - score;
+        if(delta > 0){
             score = score2;
             score2 = -1;
-            cout << "Iteration : " << i << " Score :" << score << endl; 
+        }
+        else {
+            p = prob(generator);
+            // p = ((double) rand() / (RAND_MAX));
+            // undo swap if probability is greater
+            if (p > exp(delta*((i+1))))
+            {
+                swapPapersBaseline ( slot1, slot2 );
+            }
         }
     }
     cout << "Score :" << score << endl; 
@@ -96,34 +124,19 @@ void SessionOrganizer::swapPapersBaseline ( int slot1, int slot2 )
     int paper_per_sess = conference -> getPapersInSession();
     int parallel_sess  = conference -> getParallelTracks();
     int time_slots     = conference -> getSessionsInTrack();
-
-    // cout << paper_per_sess << " " << parallel_sess << " " << time_slots << endl;
-
-    // int n =  conference->getPapersInSession() * conference->getParallelTracks() * conference->getSessionsInTrack();
-    // get two random numbers for slots and for those particular slots swap the paper in them
-    // if utility is better then go else do this again
-    
+ 
     int n = paper_per_sess * parallel_sess * time_slots;
-    // srand(time(0));
-    
 
     while(slot1 == slot2)
     {
-        // if (slot1 == slot2)
-        // {
-            // cout << "Random numbers are same" << endl;
-        // }
         slot2 = rand() % n;
     }   
 
-    // cout << slot1 << endl;
     int k1 = slot1 % paper_per_sess ;
     int temp = (slot1 - k1) / paper_per_sess;
     int j1 = temp % parallel_sess;
     int i1 = (temp - j1) / parallel_sess;
 
-    // cout << i1 << " " << j1 << " " << k1  << endl; 
-    // cout << conference->getPaper ( j1, i1, k1 ) << endl; 
     int k2 = slot2 % paper_per_sess ;
     temp = (slot2 - k2) / paper_per_sess;
     int j2 = temp % parallel_sess;

@@ -1,7 +1,7 @@
 # Prerequisites
 *.d
-in.txt
-
+# in.txt
+main 
 # Compiled Object files
 *.slo
 *.lo
