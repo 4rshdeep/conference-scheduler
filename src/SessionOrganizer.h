@@ -11,6 +11,10 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include<string>
+#include<unordered_map>
+#include<algorithm>
+#include<sstream>
 
 
 #include "Conference.h"
@@ -80,7 +84,9 @@ public:
      * @return the score.
      */
     double scoreOrganization();
-    
+
+
+    string conf2str(Conference);
     
     void printSessionOrganiser(char *);
 };

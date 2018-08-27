@@ -209,6 +209,50 @@ void SessionOrganizer::printSessionOrganiser ( char * filename)
     conference->printConference ( filename);
 }
 
+string SessionOrganizer::conf2str(Conference conf){
+    int pap;
+    vector<vector<vector<int> > > paps(0);// = new vector<vector<vector<int> > > ();
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        vector<vector<int> > temp3(0);// = new  vector<vector<int> >();
+        paps.push_back(temp3);
+        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+        {
+            vector<int> temp4(0);// = new vector<int>();
+            paps[i].push_back(temp4);            
+            for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
+            {
+                pap = conference->getPaper ( j, i, k );
+                paps[i][j].push_back(pap);
+            }
+        }
+    }
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+        {
+            sort(paps[i][j].begin(),paps[i][j].end());
+        }
+    }
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        sort(paps[i].begin(),paps[i].end());
+    }
+    sort(paps.begin(),paps.end());    
+    ostringstream oss("");
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+        {
+            for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
+            {
+                oss << paps[i][j][k];
+            }
+        }
+    }
+    return oss.str();
+}
+
 double SessionOrganizer::scoreOrganization ( )
 {
     // Sum of pairwise similarities per session.
