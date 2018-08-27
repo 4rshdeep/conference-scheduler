@@ -15,8 +15,7 @@ using namespace std;
  */
 int main ( int argc, char** argv )
 {
-    time_t start;
-    time(&start);
+    auto start = chrono::high_resolution_clock::now();
 
     // Parse the input.
     if ( argc < 3 )

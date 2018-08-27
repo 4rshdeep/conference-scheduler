@@ -16,6 +16,8 @@
 #include<algorithm>
 #include<sstream>
 #include<queue>
+#include <chrono>
+
 
 
 #include "Conference.h"
@@ -49,7 +51,7 @@ private:
 
 public:
     int totalPapers;
-    double processingTimeInMinutes ;
+    double processingTimeInSeconds ;
     SessionOrganizer();
     SessionOrganizer(string filename);
     
@@ -69,8 +71,8 @@ public:
      */
     void organizePapers();
 
-    double organisePapersBaseline(time_t t);
-    double organisePapersSystematicSearch(time_t t);
+    double organisePapersBaseline( chrono::high_resolution_clock::time_point);
+    double organisePapersSystematicSearch( chrono::high_resolution_clock::time_point);
 
     void swapPapersBaseline(Conference *,int s1, int s2);
     

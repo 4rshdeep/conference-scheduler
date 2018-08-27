@@ -13,7 +13,7 @@ SessionOrganizer::SessionOrganizer ( )
     parallelTracks = 0;
     papersInSession = 0;
     sessionsInTrack = 0;
-    processingTimeInMinutes = 0;
+    processingTimeInSeconds = 0;
     tradeoffCoefficient = 1.0;
     totalPapers = 0;
     //visited;
@@ -24,9 +24,9 @@ SessionOrganizer::SessionOrganizer ( string filename )
     readInInputFile ( filename );
     conference = new Conference ( parallelTracks, sessionsInTrack, papersInSession );
     
-    processingTimeInMinutes = processingTimeInMinutes*60;
+    processingTimeInSeconds = processingTimeInSeconds*60;
 
-    cout << processingTimeInMinutes;
+    cout << processingTimeInSeconds;
 
     totalPapers = parallelTracks*papersInSession*sessionsInTrack;
 
@@ -64,7 +64,7 @@ void SessionOrganizer::organizePapers ( )
     }
 }
 
-double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
+double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock::time_point start ) {
 
     time_t t2;
     srand(time(0));
@@ -86,12 +86,13 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
 
     string rep_state;
     int count_temp = 0;
-    for (int i = 0; i < 1000000; ++i)
+    while(true)
     {   
         time(&t2);
-        double dif = difftime (t2, t1);
+        auto curr_time = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
         // cout << dif << endl;
-        if ( processingTimeInMinutes - dif < 0.3)
+        if ( 1000*processingTimeInSeconds - duration.count() < 500)
         {
             break;
         }
@@ -113,7 +114,7 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
                 p = prob(generator);
                 // p = ((double) rand() / (RAND_MAX));
                 // undo swap if probability is greater
-                if (p > exp(delta*((i+1))))
+                if (p > exp(delta*((10+1)))) // change 10 to temp when needed
                 {
                     swapPapersBaseline ( conference, slot1, slot2 );
                 }
@@ -123,12 +124,11 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
             count_temp++;
         }
     }
-    
     cout << "Score :" << score << " c=" <<count_temp <<endl; 
     return score;
 }
 
-double SessionOrganizer::organisePapersSystematicSearch (time_t t) {
+double SessionOrganizer::organisePapersSystematicSearch ( chrono::high_resolution_clock::time_point t) {
     priority_queue<pair<double,Conference *> > states;
     int n = totalPapers;
     double score, score2, delta, p;
@@ -141,7 +141,7 @@ double SessionOrganizer::organisePapersSystematicSearch (time_t t) {
     Conference * temp_conf;
     int count = 0;
     int i,j,k;
-    for (i = 0; i < 100; ++i){
+    for (i = 0; i < 1000; ++i){
         pair<double, Conference*> to_visit = states.top();
         states.pop(); // see
         if(to_visit.first>max_score){
@@ -151,10 +151,11 @@ double SessionOrganizer::organisePapersSystematicSearch (time_t t) {
         cout<<" Exploring node with score "<<to_visit.first<<" max so far is "<<max_score<<endl;
         // actions are replacing paper at pos 0 ,0, 0, with random paper
        // slot1  = 1+ (rand() % (n-1)); 1 to n-1 random number
-        for(j=1;j<n;j++){
+        for(j=1;j<10;j++){
             temp_conf = to_visit.second->create_copy();
-            swapPapersBaseline(temp_conf, 0, j);
-            // swapPapersBaseline(temp_conf, rand() % n, rand() % n);            
+            // swapPapersBaseline(temp_conf, 0, j);
+            swapPapersBaseline(temp_conf, rand() % n, rand() % n);
+            swapPapersBaseline(temp_conf, rand() % n, rand() % n);                              
             rep_state = conf2str(temp_conf);      
             if(visited.find(rep_state)==visited.end()){
                 count++;
@@ -230,7 +231,7 @@ void SessionOrganizer::readInInputFile ( string filename )
         exit ( 0 );
     }
 
-    processingTimeInMinutes = atof ( lines[0].c_str () );
+    processingTimeInSeconds = atof ( lines[0].c_str () );
     papersInSession = atoi ( lines[1].c_str () );
     parallelTracks = atoi ( lines[2].c_str () );
     sessionsInTrack = atoi ( lines[3].c_str () );
