@@ -16,6 +16,7 @@ SessionOrganizer::SessionOrganizer ( )
     processingTimeInMinutes = 0;
     tradeoffCoefficient = 1.0;
     totalPapers = 0;
+    //visited;
 }
 
 SessionOrganizer::SessionOrganizer ( string filename )
@@ -78,16 +79,18 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
     int slot2 = rand() % n;
         
     double score, score2, delta, p;
-    score  = scoreOrganization ( );
+    score  = scoreOrganization ( conference);
     
     cout << "score :" << score << endl;
     cout << "score2 :" << score2 << endl;
-    
-    for (int i = 0; i < 100000; ++i)
+
+    string rep_state;
+    int count_temp = 0;
+    for (int i = 0; i < 1000000; ++i)
     {   
         time(&t2);
         double dif = difftime (t2, t1);
-        cout << dif << endl;
+        // cout << dif << endl;
         if ( processingTimeInMinutes - dif < 0.3)
         {
             break;
@@ -95,31 +98,82 @@ double SessionOrganizer::organisePapersBaseline ( time_t t1 ) {
         // if dif 
         slot1 = rand() % n;
         slot2 = rand() % n;
-        swapPapersBaseline ( slot1, slot2 );
-        score2 = scoreOrganization ( );
-        cout << "Iteration : " << i << " Score :" << score << endl; 
-        delta = score2 - score;
-        if(delta > 0){
-            score = score2;
-            score2 = -1;
-        }
-        else {
-            p = prob(generator);
-            // p = ((double) rand() / (RAND_MAX));
-            // undo swap if probability is greater
-            if (p > exp(delta*((i+1))))
-            {
-                swapPapersBaseline ( slot1, slot2 );
+        swapPapersBaseline (conference, slot1, slot2 );
+        rep_state = conf2str(conference);      
+        if(visited.find(rep_state)==visited.end()){
+            visited.insert(make_pair(rep_state, true));
+            score2 = scoreOrganization ( conference);
+            // cout << "Iteration : " << i << " Score :" << score << endl; 
+            delta = score2 - score;
+            if(delta > 0){
+                score = score2;
+                score2 = -1;
+            }
+            else {
+                p = prob(generator);
+                // p = ((double) rand() / (RAND_MAX));
+                // undo swap if probability is greater
+                if (p > exp(delta*((i+1))))
+                {
+                    swapPapersBaseline ( conference, slot1, slot2 );
+                }
             }
         }
+        else{
+            count_temp++;
+        }
     }
-    cout << "Score :" << score << endl; 
+    
+    cout << "Score :" << score << " c=" <<count_temp <<endl; 
     return score;
 }
 
+double SessionOrganizer::organisePapersSystematicSearch (time_t t) {
+    priority_queue<pair<double,Conference *> > states;
+    int n = totalPapers;
+    double score, score2, delta, p;
+    score  = scoreOrganization ( conference);
+    states.push(make_pair(score,conference));
+    string rep_state = conf2str(conference);
+    visited.insert(make_pair(rep_state,true));
+    double max_score = score;
+    Conference* max_conference = conference;
+    Conference * temp_conf;
+    int count = 0;
+    int i,j,k;
+    for (i = 0; i < 100; ++i){
+        pair<double, Conference*> to_visit = states.top();
+        states.pop(); // see
+        if(to_visit.first>max_score){
+            max_conference = to_visit.second;
+            max_score = to_visit.first;
+        }
+        cout<<" Exploring node with score "<<to_visit.first<<" max so far is "<<max_score<<endl;
+        // actions are replacing paper at pos 0 ,0, 0, with random paper
+       // slot1  = 1+ (rand() % (n-1)); 1 to n-1 random number
+        for(j=1;j<n;j++){
+            temp_conf = to_visit.second->create_copy();
+            swapPapersBaseline(temp_conf, 0, j);
+            // swapPapersBaseline(temp_conf, rand() % n, rand() % n);            
+            rep_state = conf2str(temp_conf);      
+            if(visited.find(rep_state)==visited.end()){
+                count++;
+                visited.insert(make_pair(rep_state,true));
+                score  = scoreOrganization (temp_conf);
+                states.push(make_pair(score,temp_conf));
+            }
+            else{
+                temp_conf->freeTracks();
+                delete(temp_conf);
+            }
+        }
+    }
+    cout<<"Scored "<<count<< " nodes"<<endl <<"Max score found is "<<max_score<<endl;
+   
+}
 
 
-void SessionOrganizer::swapPapersBaseline ( int slot1, int slot2 )
+void SessionOrganizer::swapPapersBaseline (Conference *conf, int slot1, int slot2 )
 {   
     int paper_per_sess = conference -> getPapersInSession();
     int parallel_sess  = conference -> getParallelTracks();
@@ -222,7 +276,7 @@ void SessionOrganizer::printSessionOrganiser ( char * filename)
     conference->printConference ( filename);
 }
 
-string SessionOrganizer::conf2str(Conference conf){
+string SessionOrganizer::conf2str(Conference *conf){
     int pap;
     vector<vector<vector<int> > > paps(0);// = new vector<vector<vector<int> > > ();
     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
@@ -260,13 +314,14 @@ string SessionOrganizer::conf2str(Conference conf){
             for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
             {
                 oss << paps[i][j][k];
+                oss << "-"; // just for safety
             }
         }
     }
     return oss.str();
 }
 
-double SessionOrganizer::scoreOrganization ( )
+double SessionOrganizer::scoreOrganization ( Conference *conf )
 {
     // Sum of pairwise similarities per session.
     double score1 = 0.0;

@@ -38,7 +38,7 @@ int main ( int argc, char** argv )
     // Score the organization against the gold standard.
     // cout<< "score:"<<score<<endl;
     
-    double score2 = organizer->organisePapersBaseline(start);
+    double score2 = organizer->organisePapersSystematicSearch(start);
     // Score the organization against the gold standard.
     cout<< "After score:"<<score2<<endl;
     

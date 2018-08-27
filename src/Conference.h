@@ -69,6 +69,9 @@ public:
      * @return the number of papers in a session.
      */
     int getPapersInSession();
+
+
+    void freeTracks();
     
     
     /**
@@ -77,6 +80,9 @@ public:
      * @return the track
      */
     Track getTrack(int index);
+    
+
+    Conference* create_copy();
     
     
     /**

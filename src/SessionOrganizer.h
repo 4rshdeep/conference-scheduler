@@ -15,6 +15,7 @@
 #include<unordered_map>
 #include<algorithm>
 #include<sstream>
+#include<queue>
 
 
 #include "Conference.h"
@@ -39,6 +40,7 @@ private:
     int parallelTracks ;
     int papersInSession ;
     int sessionsInTrack ;
+    unordered_map<string, bool> visited;
 
     Conference *conference;
 
@@ -68,8 +70,9 @@ public:
     void organizePapers();
 
     double organisePapersBaseline(time_t t);
+    double organisePapersSystematicSearch(time_t t);
 
-    void swapPapersBaseline(int s1, int s2);
+    void swapPapersBaseline(Conference *,int s1, int s2);
     
     
     
@@ -84,10 +87,10 @@ public:
      * Score the organization.
      * @return the score.
      */
-    double scoreOrganization();
+    double scoreOrganization(Conference *);
 
 
-    string conf2str(Conference);
+    string conf2str(Conference *);
     
     void printSessionOrganiser(char *);
 };
