@@ -30,6 +30,28 @@ void Conference::initTracks ( int parallelTracks, int sessionsInTrack, int paper
     }
 }
 
+Conference* Conference::create_copy ( )
+{
+    Conference* conference_new = new Conference ( parallelTracks, sessionsInTrack, papersInSession );
+    for ( int i = 0; i < conference_new->getSessionsInTrack ( ); i++ )
+    {
+        for ( int j = 0; j < conference_new->getParallelTracks ( ); j++ )
+        {
+            for ( int k = 0; k < conference_new->getPapersInSession ( ); k++ )
+            {
+                conference_new->setPaper ( j, i, k, getPaper(j,i,k)  );
+            }
+        }
+    }
+    return conference_new;
+}
+
+
+void Conference::freeTracks ( )
+{
+    free(tracks);
+}
+
 int Conference::getParallelTracks ( )
 {
     return parallelTracks;

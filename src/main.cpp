@@ -25,6 +25,8 @@ int main ( int argc, char** argv )
     
     double score2 = organizer->organisePapersBaseline(start);
 
+    // double score2 = organizer->organisePapersSystematicSearch(start);
+    // Score the organization against the gold standard.
     cout<< "After score:"<<score2<<endl;
     
     organizer->printSessionOrganiser ( argv[2]);
