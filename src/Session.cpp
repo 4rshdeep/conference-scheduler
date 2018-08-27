@@ -1,9 +1,3 @@
-/* 
- * File:   Session.cpp
- * Author: Kapil Thakkar
- * 
- */
-
 #include <errno.h>
 #include <vector>
 

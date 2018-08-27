@@ -1,11 +1,8 @@
-/* 
- * File:   SessionOrganizer.cpp
- * Author: Kapil Thakkar
- * 
- */
-
 #include "SessionOrganizer.h"
 #include "Util.h"
+#include <random>
+#include <cmath>
+#include <algorithm>
 #include <random>
 
 SessionOrganizer::SessionOrganizer ( )
@@ -16,7 +13,41 @@ SessionOrganizer::SessionOrganizer ( )
     processingTimeInSeconds = 0;
     tradeoffCoefficient = 1.0;
     totalPapers = 0;
-    //visited;
+    max_score = 0;
+
+}
+
+void print_vec( vector<int> vec ) {
+    for(int i=0; i < vec.size(); i++) {
+        cout << vec[i] << ", ";
+    }
+    cout << "---" << endl;
+}
+
+void SessionOrganizer::randomRestart( ) {
+    auto rng = std::default_random_engine {};
+    std::shuffle(std::begin(papers), std::end(papers), rng);
+    
+    cout << scoreOrganization(conference) << "\n\n";
+    int paperCounter = 0;
+    for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
+    {
+        for ( int j = 0; j < conference->getParallelTracks ( ); j++ )
+        {
+            for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
+            {
+                conference->setPaper ( j, i, k, papers[paperCounter] );
+                paperCounter++;
+            }
+        }
+    }
+    
+    // Should I do this?
+    if (scoreOrganization(conference) < 0.75*max_score)
+    {
+        randomRestart();
+    }
+
 }
 
 SessionOrganizer::SessionOrganizer ( string filename )
@@ -38,18 +69,20 @@ SessionOrganizer::SessionOrganizer ( string filename )
         {
             for ( int k = 0; k < conference->getPapersInSession ( ); k++ )
             {
+                papers.push_back(paperCounter);
                 conference->setPaper ( j, i, k, paperCounter );
                 paperCounter++;
             }
         }
     }
+
     // Initialisation done //
+
 }
 
 // Change this
 void SessionOrganizer::organizePapers ( )
 {
-
     int paperCounter = 0;
     for ( int i = 0; i < conference->getSessionsInTrack ( ); i++ )
     {
@@ -81,13 +114,31 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
     double score, score2, delta, p;
     score  = scoreOrganization ( conference);
     
-    cout << "score :" << score << endl;
-    cout << "score2 :" << score2 << endl;
+    int iter = 0; // keep track of local maxima
 
     string rep_state;
     int count_temp = 0;
+    int i = 0;
     while(true)
     {   
+        i++;
+        if (iter > 2000)
+        {
+            cout << "\n\nRandom Restart\n\n" <<endl ;
+            score = scoreOrganization(conference);
+            if (score > max_score)
+            {
+                max_score = score;
+            }
+            randomRestart();
+            score = scoreOrganization(conference);
+            iter = 0;
+        }
+        
+        if (score > max_score)
+        {
+            max_score = score;
+        }
         time(&t2);
         auto curr_time = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
@@ -96,11 +147,13 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
         {
             break;
         }
-        // if dif 
         slot1 = rand() % n;
         slot2 = rand() % n;
+
         swapPapersBaseline (conference, slot1, slot2 );
         rep_state = conf2str(conference);      
+        cout << "Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
+
         if(visited.find(rep_state)==visited.end()){
             visited.insert(make_pair(rep_state, true));
             score2 = scoreOrganization ( conference);
@@ -109,6 +162,7 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
             if(delta > 0){
                 score = score2;
                 score2 = -1;
+                iter = 0;
             }
             else {
                 p = prob(generator);
@@ -117,15 +171,23 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
                 if (p > exp(delta*((10+1)))) // change 10 to temp when needed
                 {
                     swapPapersBaseline ( conference, slot1, slot2 );
+                    iter++;
                 }
+                else{
+                    score = score2;
+                    cout << "Taking road less taken " << endl;
+                    iter = 0;
+                }
+
             }
         }
         else{
             count_temp++;
         }
     }
-    cout << "Score :" << score << " c=" <<count_temp <<endl; 
-    return score;
+    
+    cout << "Score :" << max_score << " c=" <<count_temp <<endl; 
+    return max_score;
 }
 
 double SessionOrganizer::organisePapersSystematicSearch ( chrono::high_resolution_clock::time_point t) {
@@ -214,7 +276,6 @@ void SessionOrganizer::readInInputFile ( string filename )
     {
         while ( getline ( myfile, line ) )
         {
-            //cout<<"Line read:"<<line<<endl;
             lines.push_back ( line );
         }
         myfile.close ( );

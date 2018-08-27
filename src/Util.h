@@ -1,8 +1,3 @@
-/* 
- * File:   Util.h
- * Author: Kapil Thakkar
- */
-
 #ifndef UTIL_H
 #define	UTIL_H
 
