@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <random>
 
-int besti1, besti2, besti3;
+int besti1, besti2, besti3, besti4, besti5, besti6, besti7, besti8, besti9;
 
 SessionOrganizer::SessionOrganizer ( )
 {
@@ -110,7 +110,59 @@ void SessionOrganizer::organizePapers ( )
     }
 }
 
+void SessionOrganizer::next_best_neighbour( Conference *conf ) {
 
+    int i1, i2, i3, i4, i5, i6, i7, i8, i9;//, besti1, besti2, besti3;
+    double score, max_score = -1;
+
+    for (int i = 0; i < 50; ++i) // check for 10 return the best one
+    {
+        i1 = rand() % totalPapers;
+        i2 = rand() % totalPapers;
+        i3 = rand() % totalPapers;
+        i4 = rand() % totalPapers;
+        i5 = rand() % totalPapers;
+        i6 = rand() % totalPapers;
+        i7 = rand() % totalPapers;
+        i8 = rand() % totalPapers;
+        i9 = rand() % totalPapers;
+        
+        swapPapersBaseline(conf, i1, i2);
+        swapPapersBaseline(conf, i2, i3);
+        swapPapersBaseline(conf, i3, i4);
+        swapPapersBaseline(conf, i4, i5);
+        swapPapersBaseline(conf, i5, i6);
+        swapPapersBaseline(conf, i6, i7);
+        swapPapersBaseline(conf, i7, i8);
+        swapPapersBaseline(conf, i8, i9);
+        score = scoreOrganization(conf);
+        if (score > max_score)
+        {
+            besti1 = i1;
+            besti2 = i2;
+            besti3 = i3;
+        }
+        swapPapersBaseline(conf, i8, i9);
+        swapPapersBaseline(conf, i7, i8);
+        swapPapersBaseline(conf, i6, i7);
+        swapPapersBaseline(conf, i5, i6);
+        swapPapersBaseline(conf, i4, i5);
+        swapPapersBaseline(conf, i3, i4);
+        swapPapersBaseline(conf, i2, i3);
+        swapPapersBaseline(conf, i1, i2);
+
+    }
+
+    swapPapersBaseline(conf, besti1, besti2);
+    swapPapersBaseline(conf, besti2, besti3);
+    swapPapersBaseline(conf, besti3, besti4);
+    swapPapersBaseline(conf, besti4, besti5);
+    swapPapersBaseline(conf, besti5, besti6);
+    swapPapersBaseline(conf, besti6, besti7);
+    swapPapersBaseline(conf, besti7, besti8);
+    swapPapersBaseline(conf, besti8, besti9);
+
+}
 
 double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock::time_point start ) {
 
@@ -137,10 +189,6 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
     {   
         if (i%2000)
         {   
-            // if (i%50000)
-            // {
-            //     cout << "Global Warming , temperature: " << temperature << endl;
-            // }
             temperature += 0.002;
         }
         auto curr_time = chrono::high_resolution_clock::now();
@@ -153,9 +201,9 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
 
         i++;
         
-        if (iter > 1000)
+        if (iter > 200)
         {
-            // cout << "\n\nRandom Restart\n\n" <<endl ;
+            cout << "\n\nRandom Restart\n\n" <<endl ;
             score = scoreOrganization(conference);
             next_best_neighbour(conference);
             score = scoreOrganization(conference);
@@ -174,22 +222,18 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
         swapPapersBaseline (conference, slot1, slot2 );
         rep_state = conf2str(conference);      
         
-        // cout << "Tracker : " << iter << " | Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
+        cout << "Tracker : " << iter << " | Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
 
         if(visited.find(rep_state)==visited.end()){
             visited.insert(make_pair(rep_state, true));
             score2 = scoreOrganization ( conference);
-            // cout << "Iteration : " << i << " Score :" << score << endl; 
+
             delta = score2 - score;
             if(delta > 0){
                 score = score2;
                 score2 = -1;
                 iter = 0;
             }
-            // else {
-            //     swapPapersBaseline ( conference, slot1, slot2 );
-            //     iter++;
-            // }
             else {
                 p = prob(generator);
                 delta_prob = exp(delta*temperature);
@@ -203,7 +247,7 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
                 else{
                     score = score2;
                     annealing++;
-                    // cout << "Taking road less taken with delta " << delta << " with probability: " << p << " should be less than : " << delta_prob << endl;
+                    cout << "Taking road less taken with delta " << delta << " with probability: " << p << " should be less than : " << delta_prob << endl;
                     iter = 0;
                 }
             }
@@ -213,7 +257,6 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
         }
     }
     
-    // cout << "Score :" << max_score << " c=" <<count_temp <<endl; 
     cout << "Times annealling step was taken : " << annealing << " Final Temperature : " << temperature << endl;
     return max_score;
 }
@@ -291,7 +334,7 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
             }
             else {
                 p = prob(generator);
-                // p = ((double) rand() / (RAND_MAX));
+                
                 // undo swap if probability is greater
                 if (p > exp(delta*((10+1)))) // change 10 to temp when needed
                 {
@@ -439,34 +482,6 @@ double SessionOrganizer::organisePapersSystematicSearch ( chrono::high_resolutio
 }
 
 
-void SessionOrganizer::next_best_neighbour( Conference *conf ) {
-
-    int i1, i2, i3;//, besti1, besti2, besti3;
-    double score, max_score = -1;
-
-    for (int i = 0; i < 100; ++i) // check for 10 return the best one
-    {
-        i1 = rand() % totalPapers;
-        i2 = rand() % totalPapers;
-        i3 = rand() % totalPapers;
-        
-        swapPapersBaseline(conf, i1, i2);
-        swapPapersBaseline(conf, i2, i3);
-        score = scoreOrganization(conf);
-        if (score > max_score)
-        {
-            besti1 = i1;
-            besti2 = i2;
-            besti3 = i3;
-        }
-        swapPapersBaseline(conf, i2, i3);
-        swapPapersBaseline(conf, i1, i2);
-
-    }
-
-    swapPapersBaseline(conf, besti1, besti2);
-    swapPapersBaseline(conf, besti2, besti3);
-}
 
 void SessionOrganizer::swapPapersBaseline (Conference *conf, int slot1, int slot2 )
 {   
