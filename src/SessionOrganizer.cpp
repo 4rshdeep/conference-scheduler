@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <random>
 
+int besti1, besti2, besti3;
+
 SessionOrganizer::SessionOrganizer ( )
 {
     parallelTracks = 0;
@@ -49,9 +51,10 @@ void print_vec( vector<int> vec ) {
 //     }
 
 // }
+
 void SessionOrganizer::randomRestart( ) {
     int slot1,slot2;
-    for ( int i = 0; i < totalPapers/50; i++ )
+    for ( int i = 0; i < totalPapers/20; i++ )
     {
 
         slot1 = rand() % totalPapers;
@@ -60,16 +63,14 @@ void SessionOrganizer::randomRestart( ) {
         swapPapersBaseline (conference, slot1, slot2 );
 
     }
-
 }
+
 SessionOrganizer::SessionOrganizer ( string filename )
 {
     readInInputFile ( filename );
     conference = new Conference ( parallelTracks, sessionsInTrack, papersInSession );
     
     processingTimeInSeconds = processingTimeInSeconds*60;
-
-    cout << processingTimeInSeconds;
 
     totalPapers = parallelTracks*papersInSession*sessionsInTrack;
 
@@ -109,9 +110,10 @@ void SessionOrganizer::organizePapers ( )
     }
 }
 
+
+
 double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock::time_point start ) {
 
-    time_t t2;
     srand(time(0));
     int n = totalPapers;
     
@@ -120,29 +122,42 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
 
     std::uniform_real_distribution<double> prob(0.0,1.0);
 
-    int slot1 = slot1 = rand() % n;
+    int slot1 = rand() % n;
     int slot2 = rand() % n;
         
-    double score, score2, delta, p;
+    double score, score2, delta, delta_prob, p, temperature = 0.0001;
     score  = scoreOrganization ( conference);
     
-    int iter = 0; // keep track of local maxima
+    int iter = 0, annealing=0; // keep track of local maxima
 
     string rep_state;
     int count_temp = 0;
     int i = 0;
     while(true)
     {   
-        i++;
-        if (iter > 2000)
+        if (i%2000)
+        {   
+            // if (i%50000)
+            // {
+            //     cout << "Global Warming , temperature: " << temperature << endl;
+            // }
+            temperature += 0.002;
+        }
+        auto curr_time = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
+        
+        if ( 1000*processingTimeInSeconds - duration.count() < 300)
         {
-            cout << "\n\nRandom Restart\n\n" <<endl ;
+            break;
+        }
+
+        i++;
+        
+        if (iter > 1000)
+        {
+            // cout << "\n\nRandom Restart\n\n" <<endl ;
             score = scoreOrganization(conference);
-            if (score > max_score)
-            {
-                max_score = score;
-            }
-            randomRestart();
+            next_best_neighbour(conference);
             score = scoreOrganization(conference);
             iter = 0;
         }
@@ -151,20 +166,15 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
         {
             max_score = score;
         }
-        time(&t2);
-        auto curr_time = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
-        // cout << dif << endl;
-        if ( 1000*processingTimeInSeconds - duration.count() < 500)
-        {
-            break;
-        }
+
+        // make changes to a state
         slot1 = rand() % n;
         slot2 = rand() % n;
 
         swapPapersBaseline (conference, slot1, slot2 );
         rep_state = conf2str(conference);      
-        cout << "Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
+        
+        // cout << "Tracker : " << iter << " | Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
 
         if(visited.find(rep_state)==visited.end()){
             visited.insert(make_pair(rep_state, true));
@@ -176,21 +186,26 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
                 score2 = -1;
                 iter = 0;
             }
+            // else {
+            //     swapPapersBaseline ( conference, slot1, slot2 );
+            //     iter++;
+            // }
             else {
                 p = prob(generator);
-                // p = ((double) rand() / (RAND_MAX));
+                delta_prob = exp(delta*temperature);
+
                 // undo swap if probability is greater
-                if (p > exp(delta*((10+1)))) // change 10 to temp when needed
+                if (p > delta_prob) // change 10 to temp when needed
                 {
                     swapPapersBaseline ( conference, slot1, slot2 );
                     iter++;
                 }
                 else{
                     score = score2;
-                    cout << "Taking road less taken " << endl;
+                    annealing++;
+                    // cout << "Taking road less taken with delta " << delta << " with probability: " << p << " should be less than : " << delta_prob << endl;
                     iter = 0;
                 }
-
             }
         }
         else{
@@ -198,13 +213,13 @@ double SessionOrganizer::organisePapersBaseline ( chrono::high_resolution_clock:
         }
     }
     
-    cout << "Score :" << max_score << " c=" <<count_temp <<endl; 
+    // cout << "Score :" << max_score << " c=" <<count_temp <<endl; 
+    cout << "Times annealling step was taken : " << annealing << " Final Temperature : " << temperature << endl;
     return max_score;
 }
 
 double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clock::time_point start ) {
 
-    time_t t2;
     srand(time(0));
     int n = totalPapers;
     
@@ -216,7 +231,6 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
     int slot1 = rand() % n;
     int slot2 = rand() % n;
     int slot3 = rand() % n;
-    
         
     double score, score2, delta, p;
     score  = scoreOrganization ( conference);
@@ -246,10 +260,10 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
         {
             max_score = score;
         }
-        time(&t2);
+
         auto curr_time = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
-        // cout << dif << endl;
+
         if ( 1000*processingTimeInSeconds - duration.count() < 500)
         {
             break;
@@ -296,11 +310,86 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
             }
         }
         else{
+            // shouldn't we store the score in the representation instead of skipping
             count_temp++;
         }
     }
     
-    cout << "Score :" << max_score << " c=" <<count_temp <<endl; 
+    cout << "Score : " << max_score << " c = " << count_temp << endl; 
+    return max_score;
+}
+
+
+double SessionOrganizer::greedySearch ( chrono::high_resolution_clock::time_point start ) {
+
+    srand(time(0));
+    
+    double score, score2, delta;
+    
+    score  = scoreOrganization ( conference);
+    
+    int iter = 0; // keep track of local maxima
+
+    string rep_state;
+    int count_temp = 0;
+    int i = 0;
+    
+    while(true)
+    {   
+        i++;
+        auto curr_time = chrono::high_resolution_clock::now();
+        auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
+        if ( 1000*processingTimeInSeconds - duration.count() < 500)
+        {
+            break;
+        }
+        
+        if (iter > 100)
+        {
+            cout << "\n\nRandom Restart\n\n" <<endl ;
+            score = scoreOrganization(conference);
+            
+            randomRestart();
+            
+            score = scoreOrganization(conference);
+            iter = 0;
+        }
+        
+        if (score > max_score)
+        {
+            max_score = score;
+        }
+
+        next_best_neighbour( conference );
+
+        // cout << "| Time : " << duration.count() << " | Iteration : " << i << " | Score :" << score << endl; 
+
+        // if(visited.find(rep_state)==visited.end()){
+
+            visited.insert(make_pair(rep_state, true));
+            score2 = scoreOrganization ( conference);
+            delta = score2 - score;
+
+            if(delta > 0){
+                score = score2;
+                score2 = -1;
+                iter = 0;
+            }
+            else {
+                // cout << "here";
+                swapPapersBaseline (conference, besti2, besti3 );
+                swapPapersBaseline (conference, besti1, besti2 );
+                iter++;
+            }
+
+        // }
+        // else{
+        //     // shouldn't we store the score in the representation instead of skipping
+        //     count_temp++;
+        // }
+    }
+    
+    cout << "Score : " << max_score << " c = " << count_temp << endl; 
     return max_score;
 }
 
@@ -317,7 +406,7 @@ double SessionOrganizer::organisePapersSystematicSearch ( chrono::high_resolutio
     Conference * temp_conf;
     int count = 0;
     int i,j,k;
-    for (i = 0; i < 1000; ++i){
+    for (i = 0; i < 800; ++i){
         pair<double, Conference*> to_visit = states.top();
         states.pop(); // see
         if(to_visit.first>max_score){
@@ -349,6 +438,35 @@ double SessionOrganizer::organisePapersSystematicSearch ( chrono::high_resolutio
    
 }
 
+
+void SessionOrganizer::next_best_neighbour( Conference *conf ) {
+
+    int i1, i2, i3;//, besti1, besti2, besti3;
+    double score, max_score = -1;
+
+    for (int i = 0; i < 100; ++i) // check for 10 return the best one
+    {
+        i1 = rand() % totalPapers;
+        i2 = rand() % totalPapers;
+        i3 = rand() % totalPapers;
+        
+        swapPapersBaseline(conf, i1, i2);
+        swapPapersBaseline(conf, i2, i3);
+        score = scoreOrganization(conf);
+        if (score > max_score)
+        {
+            besti1 = i1;
+            besti2 = i2;
+            besti3 = i3;
+        }
+        swapPapersBaseline(conf, i2, i3);
+        swapPapersBaseline(conf, i1, i2);
+
+    }
+
+    swapPapersBaseline(conf, besti1, besti2);
+    swapPapersBaseline(conf, besti2, besti3);
+}
 
 void SessionOrganizer::swapPapersBaseline (Conference *conf, int slot1, int slot2 )
 {   

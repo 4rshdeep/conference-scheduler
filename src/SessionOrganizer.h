@@ -73,8 +73,9 @@ public:
 
     void swapPapersBaseline(Conference *,int s1, int s2);
     
+    void next_best_neighbour( Conference * );
     
-    
+    double greedySearch(chrono::high_resolution_clock::time_point );
     /**
      * Get the distance matrix.
      * @return the distance matrix.
