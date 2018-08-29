@@ -165,6 +165,7 @@ double SessionOrganizer::swapAndReturnScore( Conference *conf, double score, int
 }
 
 double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clock::time_point start ) {
+    
     srand(time(0));
     int n = totalPapers;
     
@@ -188,9 +189,14 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
             temperature += 0.002;
         }
         
+        if (score > max_score)
+        {
+            max_score = score;
+            bestConference = conference->create_copy();
+        }
+        
         auto curr_time = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(curr_time - start);
-        
         if ( 1000*processingTimeInSeconds - duration.count() < 500)
         {
             break;
@@ -207,11 +213,7 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
             iter = 0;
         }
         
-        if (score > max_score)
-        {
-            max_score = score;
-            bestConference = conference->create_copy();
-        }
+        
 
         // make changes to a state
         slot1 = rand() % n;
@@ -245,8 +247,8 @@ double SessionOrganizer::organisePapersAlternative ( chrono::high_resolution_clo
         }
     }
     
-    cout << "Times annealling step was taken : " << annealing << " Final Temperature : " << temperature << endl;
-    cout << "Max Score : " << max_score << " Iterations : " << i << endl;
+    // cout << "Times annealling step was taken : " << annealing << " Final Temperature : " << temperature << endl;
+    // cout << "Max Score : " << max_score << " Iterations : " << i << endl;
     conference = bestConference;
     return scoreOrganization(conference);
 
