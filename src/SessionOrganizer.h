@@ -43,6 +43,7 @@ private:
 
 
 public:
+    Conference* bestConference;
     int totalPapers;
     double processingTimeInSeconds;
     vector<int> papers;
