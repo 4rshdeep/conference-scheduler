@@ -71,8 +71,14 @@ public:
     double organisePapersSystematicSearch( chrono::high_resolution_clock::time_point);
     double organisePapersAlternative ( chrono::high_resolution_clock::time_point start );
 
+
     void swapPapersBaseline(Conference *,int s1, int s2);
     
+    double swapAndReturnScore( Conference*, double, int, int );
+
+    double getRowScore ( Conference *conf, int row );
+
+
     void next_best_neighbour( Conference * );
     
     double greedySearch(chrono::high_resolution_clock::time_point );
