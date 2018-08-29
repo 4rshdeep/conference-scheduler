@@ -37,12 +37,12 @@ private:
     int sessionsInTrack ;
     unordered_map<string, bool> visited;
 
-    Conference *conference;
 
     double tradeoffCoefficient ; // the tradeoff coefficient
 
 
 public:
+    Conference *conference;
     Conference* bestConference;
     int totalPapers;
     double processingTimeInSeconds;

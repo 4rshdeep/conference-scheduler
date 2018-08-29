@@ -23,15 +23,12 @@ int main ( int argc, char** argv )
     // Initialize the conference organizer.
     SessionOrganizer *organizer  = new SessionOrganizer( inputfilename );
     
-    // double score = organizer->organisePapersBaseline(start);
-    // double score = organizer->greedySearch(start);
     double score = organizer->organisePapersAlternative(start);
 
-    // double score2 = organizer->organisePapersSystematicSearch(start);
     // Score the organization against the gold standard.
-    cout << "After score : " << score << endl;
-    
+    cout << "Final score : " << organizer->scoreOrganization( organizer->conference ) << endl;
     organizer->printSessionOrganiser ( argv[2]);
+
     return 0;
 }
 
