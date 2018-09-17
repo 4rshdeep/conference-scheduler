@@ -3,7 +3,7 @@ SOURCES  =  ./src/main.cpp ./src/Track.cpp ./src/Session.cpp ./src/Conference.cp
 BIN = ./bin/main
 
 all: ./src/main.cpp ./src/Track.cpp ./src/Session.cpp ./src/Conference.cpp ./src/SessionOrganizer.cpp
-	g++ -g -std=c++11 $(INCLUDES) -Ofast -march=native -funroll-loops -fopenmp -D_GLIBCXX_PARALLEL -o $(BIN) $(SOURCES)
+	g++ -g -std=c++11 $(INCLUDES) -Ofast -O3 -march=native -funroll-loops -fopenmp -D_GLIBCXX_PARALLEL -o $(BIN) $(SOURCES)
 
 clean: 
 	rm bin/*
