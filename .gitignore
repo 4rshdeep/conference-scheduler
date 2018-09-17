@@ -1,6 +1,6 @@
 # Prerequisites
 *.d
-.txt
+*.txt
 main 
 # Compiled Object files
 *.slo
